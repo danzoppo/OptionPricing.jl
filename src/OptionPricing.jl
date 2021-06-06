@@ -2,7 +2,7 @@ module OptionPricing
 
 import Statistics: mean
 
-export AmericanOption, simulate_price, price_option
+export AmericanOption, Put, simulate_price, price_option
 
 abstract type AbstractOption end
 abstract type RealOption <:AbstractOption end

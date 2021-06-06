@@ -20,12 +20,12 @@ function price_option(opt::AmericanOption; runs::Int = 10_000, order::Int = 3)
     val_matrix = simulate_price(opt; runs = runs)
 
     # Terminal Value
-    val_matrix[:,end] .= max.(opt.strike .- val_matrix[:,end], 0.0)
+    val_matrix[:,end] .= exercise_value(opt, val_matrix[:,end])
 
     # Value Iteration
-    for epoch in (opt.epochs-1):-1:1
+    @inbounds for epoch in (opt.epochs-1):-1:1
         prices = @view val_matrix[:, epoch]
-        exercise_vals = max.(opt.strike .- prices, 0.0)
+        exercise_vals = exercise_value(opt, prices)
         discounted_vals = discount_rate * val_matrix[:,epoch+1]
 
         # Power series matrix for regression
@@ -42,10 +42,21 @@ function price_option(opt::AmericanOption; runs::Int = 10_000, order::Int = 3)
     return mean(discount_rate * val_matrix[:,1])
 end
 
-function exercise_value(opt::AmericanOption, price)
+function exercise_value(opt::AmericanOption, price::AbstractArray)
+    retval = similar(price)
+    @inbounds for i in 1:length(price)
+        retval[i] = exercise_value(price[i], opt.strike, opt.style)
+    end
+    return retval
 end
 
-function exercise_value(price::AbstractFloat, strike::AbstractFloat, type::)
+function exercise_value(price::T, strike::T, style::Put) where {T<:AbstractFloat}
+    return max(strike - price, zero(T))
+end
+
+function exercise_value(price::T, strike::T, style::Call) where {T<:AbstractFloat}
+    return max(price - strike, zero(T))
+end
 
 function simulate_price(opt::AmericanOption; runs::Int = 10_000)
     # Set step size 
