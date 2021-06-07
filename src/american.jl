@@ -1,5 +1,10 @@
 # American Option pricing with Least Squares Monte Carlo simulation.
 
+"""
+    AmericanOption{R<:AbstractFloat, S<:OptionStyle} <: FinancialOption
+
+AmericanOption is a struct holding the attributes of an american option. 
+"""
 struct AmericanOption{R<:AbstractFloat, S<:OptionStyle} <: FinancialOption
     initialprice::R
     strike::R
@@ -11,6 +16,12 @@ struct AmericanOption{R<:AbstractFloat, S<:OptionStyle} <: FinancialOption
     style::S
 end
 
+"""
+    price_option(opt::AmericanOption; runs::Int = 10_000, order::Int = 3)
+
+price_option calls the simulation of the geometric Brownian motion process 
+and uses the LSM algorithm to value the option.
+"""
 function price_option(opt::AmericanOption; runs::Int = 10_000, order::Int = 3)
     # Initialize 
     stepsize = opt.maturity / opt.epochs
@@ -42,6 +53,7 @@ function price_option(opt::AmericanOption; runs::Int = 10_000, order::Int = 3)
     return mean(discount_rate * val_matrix[:,1])
 end
 
+"exercise_value returns the option return based on the simulated price depending on whether a put or a call"
 function exercise_value(opt::AmericanOption, price::AbstractArray)
     retval = similar(price)
     @inbounds for i in 1:length(price)
@@ -58,6 +70,7 @@ function exercise_value(price::T, strike::T, style::Call) where {T<:AbstractFloa
     return max(price - strike, zero(T))
 end
 
+"simulate_price returns a matrix of asset prices"
 function simulate_price(opt::AmericanOption; runs::Int = 10_000)
     # Set step size 
     stepsize = opt.maturity / opt.epochs
