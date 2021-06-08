@@ -19,6 +19,7 @@ end
 """
     price_option(opt::AmericanOption; runs::Int = 10_000, order::Int = 3)
 
+AmericanOption: 
 price_option calls the simulation of the geometric Brownian motion process 
 and uses the LSM algorithm to value the option.
 """

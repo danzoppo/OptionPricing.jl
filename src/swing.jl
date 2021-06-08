@@ -53,11 +53,15 @@ function price_option(opt::SwingOption)
 
     # value iteration. Termainal value set by the exercise values above.
     @inbounds for epoch in (days-1):-1:1
+
+        # Initialize contuation values that carry over between swing rights
+        next_continue_vals = zeros(length(runs))
+
         for right in 1:opt.contract.max_rights
             exercise_vals = @view retval[:,epoch,right]
             discounted_vals = discount_rate * retval[:,epoch+1,right]
 
-            # power series matrix for regression and coefficients
+            # power series matrix for regression coefficients
             power_matrix = power_series(prices,opt.val.order)
             reg_coeff = power_matrix \ discounted_vals
 
